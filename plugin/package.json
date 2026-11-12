@@ -1,0 +1,20 @@
+{
+  "name": "opencode-sylli",
+  "version": "0.1.0",
+  "description": "Sylli deterministic security interceptor, EGM lifecycle guard, and dynamic stack rule injector for OpenCode",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "security",
+    "egm",
+    "antislop"
+  ],
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  }
+}
