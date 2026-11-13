@@ -16,5 +16,8 @@
   ],
   "peerDependencies": {
     "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6"
   }
 }

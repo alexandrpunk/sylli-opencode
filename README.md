@@ -23,9 +23,23 @@ Prompt-based security rules can be ignored by a hallucinating model. Sylli's plu
 
 - **Blocked paths**: `/etc`, `/usr`, `/bin`, `/boot`, `/root`, `.ssh`, `.gnupg`, and real `.env` secrets (templates like `.env.example` stay editable).
 - **Blocked commands**: `curl | sh`, `wget | bash`, `rm -rf /`, `mkfs`, `dd if=`, `chmod 777`.
-- **Audit trail**: every interception logged to `.opencode/security_audit.log`.
+- **Audit trail**: every interception *and every bypass* logged to `.opencode/security_audit.log`.
 - **Stack rules auto-injection**: detects the project's dominant language (`tsconfig.json`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `composer.json`) and injects the matching self-checks from `rules/` into the system prompt.
 - **EGM advisory**: warns when `DESIGN.md` exists but is not `frozen` yet.
+
+### Bypassing restrictions when needed
+All restrictions are escap-hatches by design — every bypass is logged with a `[BYPASS]` entry in `.opencode/security_audit.log`:
+
+1. **Surgical (recommended)** — per-project allowlist in `.opencode/sylli.allow`:
+   ```
+   path:/etc/hosts            # allow exactly this path
+   path-re:/etc/nginx/.*      # allow by regex
+   cmd-re:^sudo systemctl restart nginx
+   til:2026-11-12T18:00       # whole allowlist auto-expires at this time
+   ```
+   A commented template ships at `templates/sylli.allow.template`.
+2. **Session-wide** — launch OpenCode with `SYLLI_DISABLE=1` to disable every interceptor (path blocks, command blocks, and the EGM advisory; stack rules still inject).
+3. Blocked tool calls return an error message that names the exact allowlist line to add, so the agent (or you) can unblock a legitimate action in one step.
 
 ### ✨ 3. Anti-Slop Skill Matrix (36 skills, role-bound)
 Each council agent gets only the skills relevant to its job — no context pollution:
@@ -80,6 +94,7 @@ This will:
 ├── skills/                  # 36 role-bound skills (anti-slop, MengTo, patterns)
 ├── rules/                   # Per-language self-checks (ts, py, go, rust, c#, php)
 ├── templates/DESIGN.template.md
+├── templates/sylli.allow.template  # Bypass allowlist template
 ├── SECURITY.md              # Security policy (enforced by the plugin)
 ├── install.sh / install.js  # Idempotent installer (--dry-run, --uninstall)
 ├── verify.sh                # Healthcheck

@@ -1,0 +1,20 @@
+# Sylli Security Allowlist
+#
+# Add one exception per line to bypass specific security restrictions.
+# Every bypass is logged to .opencode/security_audit.log with a [BYPASS] entry.
+#
+# Supported directives:
+#   path:<absolute path>     Allow this exact path (and anything below it).
+#   path-re:<regex>          Allow any path matching the regex.
+#   cmd-re:<regex>           Allow any shell command matching the regex.
+#   til:<ISO timestamp>      The whole allowlist auto-expires at this time
+#                            (e.g. til:2026-11-12T18:00 — restrictions
+#                            come back into force automatically).
+#
+# Lines starting with # are comments. Invalid regexes are ignored.
+#
+# Examples:
+#   path:/etc/hosts
+#   path-re:/etc/nginx/.*
+#   cmd-re:^sudo systemctl restart nginx
+#   til:2026-11-12T18:00
