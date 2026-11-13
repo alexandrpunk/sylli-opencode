@@ -53,6 +53,23 @@ Each council agent gets only the skills relevant to its job — no context pollu
 
 Includes the full [miqdadbadjuber/anti-slop](https://github.com/miqdadbadjuber/anti-slop) suite — killing cliché AI UI (purple gradients, glassmorphism abuse, fake terminals), empty copywriting ("Unlock the power of..."), accessibility failures (`<div onClick>`, removed focus outlines), and noisy code comments.
 
+### 🧠 4. Automatic Project Memory (0.3.0)
+Persistent project context is stored by [`@knikolov/opencode-plugin-simple-memory`](https://www.npmjs.com/package/@knikolov/opencode-plugin-simple-memory) (MIT) as typed records — `decision`, `learning`, `preference`, `blocker`, `context`, `pattern` — in git-trackable `.opencode/memory/YYYY-MM-DD.logfmt` files. `sylli` records every DESIGN.md freeze/thaw (`type=decision`, with the SHA-256 hash) and unresolved Goldfish findings (`type=blocker`), and recalls prior context at kickoff so settled questions are not re-asked. Injection is automatic: each session receives a budget-capped `Relevant Memory:` block (`contextLimit: 5`, `contextMaxChars: 1200`).
+
+The Sylli plugin keeps memory tidy automatically (fail-open, non-blocking):
+
+- **Compact** — once total memory exceeds **1 MB**, records are deduplicated and rewritten in chronological order, spanning daily file boundaries.
+- **Purge** — `context`, `blocker`, and `learning` records older than **90 days** are removed (age-only; simple-memory stores no recall timestamps). `decision`, `preference`, and `pattern` records are **never** auto-purged.
+- **Audit** — every purge appends a record to `.opencode/memory/deletions.logfmt`. Nothing is silently deleted.
+
+Thresholds are configurable via environment variables:
+
+```bash
+SYLLI_MEMORY_COMPACT_BYTES=1048576   # compact threshold in bytes
+SYLLI_MEMORY_PURGE_DAYS=90           # purge age for context/blocker/learning
+SYLLI_MEMORY_HYGIENE_INTERVAL=200    # tool executions between hygiene passes
+```
+
 ---
 
 ## Quick Install (one command)
@@ -68,6 +85,7 @@ This will:
 4. Deploy 4 agent personas (`sylli` + 3 Goldfish) to `~/.config/opencode/agents/`.
 5. Register the `sylli` agent + role-bound skill grants in `oh-my-opencode-slim.json`.
 6. Register the security & rules plugin in `opencode.json`.
+7. Register the automatic project memory plugin in `opencode.json`.
 
 **Restart OpenCode** afterwards, then just summon the architect:
 

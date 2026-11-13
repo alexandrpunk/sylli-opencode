@@ -7,6 +7,7 @@ echo "===================================================="
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${HOME}/.config/opencode"
+OPENCODE_CONFIG="${CONFIG_DIR}/opencode.json"
 OMO_CONFIG="${CONFIG_DIR}/oh-my-opencode-slim.json"
 if [[ ! -f "$OMO_CONFIG" && -f "${CONFIG_DIR}/oh-my-opencode-slim.jsonc" ]]; then
   OMO_CONFIG="${CONFIG_DIR}/oh-my-opencode-slim.jsonc"
@@ -16,7 +17,7 @@ ERRORS=0
 WARNINGS=0
 
 # 1. Check Node.js and Bun runtime
-echo -n "[1/7] Checking runtime environments... "
+echo -n "[1/8] Checking runtime environments... "
 RUNTIMES=""
 if command -v node >/dev/null 2>&1; then
   RUNTIMES="Node $(node -v)"
@@ -33,7 +34,7 @@ else
 fi
 
 # 2. Check Sylli files
-echo -n "[2/7] Verifying Sylli project files... "
+echo -n "[2/8] Verifying Sylli project files... "
 REQUIRED_FILES=(
   "agents/sylli.md"
   "agents/goldfish-design_critic.md"
@@ -42,6 +43,7 @@ REQUIRED_FILES=(
   "templates/DESIGN.template.md"
   "plugin/package.json"
   "plugin/src/index.ts"
+  "plugin/src/memory-hygiene.ts"
   "SECURITY.md"
   "DESIGN.md"
 )
@@ -62,7 +64,7 @@ else
 fi
 
 # 3. Check Plugin Dependencies
-echo -n "[3/7] Checking plugin dependencies... "
+echo -n "[3/8] Checking plugin dependencies... "
 if grep -q '"@opencode/plugin"' "${PROJECT_DIR}/plugin/package.json"; then
   echo "OK (@opencode/plugin declared; runtime provided by OpenCode)"
 else
@@ -71,7 +73,7 @@ else
 fi
 
 # 4. Check Skills Catalog
-echo -n "[4/7] Verifying skills catalog (~36 skills)... "
+echo -n "[4/8] Verifying skills catalog (~36 skills)... "
 SKILL_COUNT=$(find "${PROJECT_DIR}/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)
 if [[ $SKILL_COUNT -ge 30 ]]; then
   echo "OK ($SKILL_COUNT skills detected)"
@@ -81,7 +83,7 @@ else
 fi
 
 # 5. Check Language Rules
-echo -n "[5/7] Verifying stack rules... "
+echo -n "[5/8] Verifying stack rules... "
 RULE_COUNT=$(find "${PROJECT_DIR}/rules" -maxdepth 1 -name "*.md" | wc -l)
 if [[ $RULE_COUNT -ge 6 ]]; then
   echo "OK ($RULE_COUNT rule definitions present)"
@@ -91,7 +93,7 @@ else
 fi
 
 # 6. Check Linters and Formatters (for anti-slop gates)
-echo -n "[6/7] Checking anti-slop gate tools... "
+echo -n "[6/8] Checking anti-slop gate tools... "
 LINTERS_FOUND=()
 for tool in prettier oxlint stylelint html-validate eslint ruff; do
   if command -v "$tool" >/dev/null 2>&1; then
@@ -106,7 +108,7 @@ else
 fi
 
 # 7. Check oh-my-opencode-slim configuration
-echo -n "[7/7] Checking omo-slim configuration... "
+echo -n "[7/8] Checking omo-slim configuration... "
 if [[ -f "$OMO_CONFIG" ]]; then
   echo "OK ($OMO_CONFIG)"
   if grep -q "sylli" "$OMO_CONFIG" 2>/dev/null; then
@@ -116,6 +118,15 @@ if [[ -f "$OMO_CONFIG" ]]; then
   fi
 else
   echo "WARNING (omo-slim config not found at $OMO_CONFIG)"
+  WARNINGS=$((WARNINGS + 1))
+fi
+
+# 8. Check project memory plugin registration (install.sh adds it)
+echo -n "[8/8] Checking project memory plugin registration... "
+if [[ -f "$OPENCODE_CONFIG" ]] && grep -q "@knikolov/opencode-plugin-simple-memory" "$OPENCODE_CONFIG" 2>/dev/null; then
+  echo "OK (@knikolov/opencode-plugin-simple-memory registered)"
+else
+  echo "WARNING (memory plugin not registered; run ./install.sh to enable automatic project memory)"
   WARNINGS=$((WARNINGS + 1))
 fi
 

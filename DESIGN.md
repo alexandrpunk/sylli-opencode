@@ -3,10 +3,12 @@
 * **Author:** alexandrpunk
 * **Agent Name:** `sylli`
 * **Status:** frozen
-* **Version:** 0.2.0
-* **Date:** 2026-11-12
-* **Frozen-Hash:** `d9ea50f2c63df61ba2f29fb08b64227a5ed5ac27cf6835025974aec274c56c93`
-* **Frozen-Date:** 2026-11-12T00:55:00Z
+* **Version:** 0.3.0
+* **Date:** 2026-11-13
+* **Frozen-Hash:** `a66f94be87af3c644868285dd9ffcea92c5d25ad9c549f44b28b4e3a7c968393`
+* **Frozen-Date:** 2026-11-13T08:24:29Z
+* **Review:** Goldfish 3-lens delta re-review (design_critic, zoom_out, implementation_readiness) — verdict approve-with-changes; blocker B1 + majors M1–M3 resolved in this revision.
+* **Supersedes:** 0.2.0 (frozen 2026-11-12T00:55:00Z, hash `d9ea50f2c63df61ba2f29fb08b64227a5ed5ac27cf6835025974aec274c56c93`)
 * **Source:** `concepts_brief.md`, `SECURITY.md`, `miqdadbadjuber/anti-slop`
 
 ---
@@ -48,7 +50,7 @@ Sylli solves all three: `sylli` governs design before construction, the security
 
 * No monkey-patching or code fork of upstream `oh-my-opencode-slim`.
 * No dual-primary orchestrator; `sylli` is an architectural delegate, not a competing root orchestrator.
-* No replacement of `opencode-mem`; existing persistent memory is preserved untouched.
+* No replacement of `opencode-mem`; persistent project memory is delegated to `@knikolov/opencode-plugin-simple-memory` as the storage engine, with automatic hygiene layered on by the Sylli plugin (see §4 below). Sylli does not implement its own storage format.
 * No hard-blocking of code edits if the user explicitly chooses to bypass `DESIGN.md` (advisory warning with user override).
 
 ---
@@ -143,9 +145,32 @@ The security plugin hooks into OpenCode's tool execution cycle:
 | **`orchestrator`** | `writing-plans`, `test-driven-development` | `antislop-copywriting` | Context guidelines |
 | **`all agents`** | `context-hygiene` | — | — |
 
+### 4. Automatic Project Memory Layer (Delta 0.3.0)
+
+* **Storage engine**: `@knikolov/opencode-plugin-simple-memory` (MIT), installed as a plugin dependency with `autoLoad: true, autoSave: true, autoSaveScope: "project"`. Memories live in `.opencode/memory/` (logfmt, git-trackable).
+* **Automatic capture**:
+  * Explicit "remember …" requests saved automatically (built-in, conservative — no arbitrary conversation harvesting).
+  * `sylli` writes `type=decision, scope=project` records on every DESIGN.md freeze/thaw, including the SHA-256 hash, and `type=blocker` records for unresolved review findings.
+* **Automatic injection**: every session gets a compact, budget-capped `Relevant Memory:` block (`contextLimit: 5`, `contextMaxChars: 1200`) so agents resume with context without re-asking settled questions.
+* **Automatic hygiene (Sylli plugin module, new)**:
+  * Runs on session start and as a cheap counter-triggered check (every N tool executions).
+  * **Compact**: when total memory size exceeds 1 MB, run dedupe + chronological rewrite (equivalent to `memory_compact`, non-interactive).
+  * **Purge**: `context`, `blocker`, and `learning` records with `ts` older than `memoryPurgeDays` (default 90) are removed. simple-memory stores no recall/access timestamps, so the predicate is age-only by `ts`. `decision`, `preference`, and `pattern` records are never auto-purged. Note: auto-captured "remember …" requests land in `context/project`, so they are subject to the 90-day purge — acceptable by design.
+  * All automatic actions append audit records to the **same** `deletions.logfmt` format used by `memory_forget` (no second log). Nothing is silently deleted.
+  * **Concurrency contract**: hygiene runs only at session start (before agent turns and before simple-memory has cached writes) and on counter ticks; all rewrites use atomic writes (temp file + rename); if `deletions.logfmt` mtime changed within the last 30 s (another writer active), the hygiene pass skips. Hygiene is timeout-bounded and fails open — it can never block a session.
+  * Thresholds configurable via the Sylli plugin `options` block (`memoryCompactBytes` default 1048576, `memoryPurgeDays` default 90, `memoryHygieneInterval` default 200 tool executions). Compact aggregates sizes **across all daily `YYYY-MM-DD.logfmt` files** and the chronological rewrite spans file boundaries.
+
+### 5. Memory Layer Alternative Considered (Delta 0.3.0)
+
+* **Description**: Build a custom markdown-based memory (ADR files + per-project `.opencode/memory/*.md`) inside the Sylli plugin, or adopt `opencode-mem`.
+* **Pros**: Full control over schema; recall-activity tracking possible.
+* **Cons**: Duplicates a maintained MIT plugin's storage, tools, and lifecycle; `opencode-mem` adds a heavyweight external dependency not present in the target environment; custom format forfeits import/export/compact tooling.
+* **Reason for Rejection**: Reuse over rebuild. simple-memory's typed records (`decision`, `blocker`, `context`, …) cover Sylli's needs; the only gap (automatic hygiene) is a thin ~100-line module.
+
 ---
 
 ## Alternatives Considered
+
 
 ### 1. Pure Markdown Skill Bundle without Plugin
 * **Description**: Ship all security and kickoff behaviors as prompt-only skills without an OpenCode plugin.
@@ -194,7 +219,7 @@ The security plugin hooks into OpenCode's tool execution cycle:
 
 #### 2. `agents/sylli.md` (Create)
 * **Type**: Agent Persona Prompt.
-* **Scope**: System prompt for `sylli`, encoding Elephant kickoff rules, requirements elicitation interview protocol, Goldfish swarm dispatch, and freeze gate handling.
+* **Scope**: System prompt for `sylli`, encoding Elephant kickoff rules, requirements elicitation interview protocol, Goldfish swarm dispatch, and freeze gate handling. Includes memory-capture instructions: `sylli` calls `memory_remember` (`type=decision, scope=project`, with frozen hash) on every DESIGN.md freeze/thaw and `type=blocker` for unresolved review findings; on kickoff start, `memory_recall`/`memory_context` to load prior project context.
 
 #### 3. `skills/antislop-*` (Integrate)
 * **Type**: Skills Catalog.
@@ -204,7 +229,11 @@ The security plugin hooks into OpenCode's tool execution cycle:
 * **Type**: Template.
 * **Scope**: Reusable structure for target repositories containing header metadata, CUJs, technical plan, alternatives, and risks sections.
 
-#### 5. `install.sh` & `verify.sh` (Create)
+#### 6. Memory Plugin Dependency & Hygiene Module (Delta 0.3.0)
+* **Type**: Plugin Dependency + Module (`plugin/src/memory-hygiene.ts`).
+* **Scope**: Install `@knikolov/opencode-plugin-simple-memory` (autoLoad/autoSave, `autoSaveScope: "project"`, `contextLimit: 5`, `contextMaxChars: 1200`); automatic compact/purge maintenance over `.opencode/memory/` using simple-memory's public logfmt format; session-start and counter-triggered (`memoryHygieneInterval`, default 200 tool executions); atomic writes; audit-logged in `deletions.logfmt`; configurable thresholds (`memoryCompactBytes` default 1 MB, `memoryPurgeDays` default 90; never purge `decision`/`preference`/`pattern`).
+
+#### 7. `install.sh` & `verify.sh` (Create)
 * **Type**: Shell Automation.
 * **Scope**: Additive merger into `~/.config/opencode/oh-my-opencode-slim.jsonc`, collision validation, plugin build, and health reporting.
 
@@ -228,5 +257,11 @@ The security plugin hooks into OpenCode's tool execution cycle:
   * Create a mock UI with `<div onClick>` and low contrast → assert `antislop-human` fails delivery gate.
 
 ---
+
+* **Memory Hygiene Verification (Delta 0.3.0)**:
+  * Seed `.opencode/memory/` with >1 MB of duplicate records → assert automatic compaction reduces size and dedupes.
+  * Seed a 100-day-old `context` record and a 100-day-old `decision` record → assert the context record is purged with an audit entry in `deletions.logfmt` (same format as `memory_forget`) and the decision record survives.
+  * Assert hygiene runs without blocking session start (timeout-bounded, fail-open) and skips when `deletions.logfmt` mtime is fresh (< 30 s).
+  * Assert compaction spans daily file boundaries (records merged across `YYYY-MM-DD.logfmt` files).
 
 *Drafted with EGM & Sylli Architecture*

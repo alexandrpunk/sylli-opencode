@@ -51,6 +51,26 @@ const SYLLI_AGENT_DEF = {
   skills: ['brainstorming', 'writing-plans', 'context-hygiene']
 };
 
+// 2. Automatic project memory storage engine (DESIGN.md Delta 0.3.0, §4).
+// Registered as its own OpenCode plugin; Sylli only shares its logfmt format.
+const MEMORY_PLUGIN = '@knikolov/opencode-plugin-simple-memory';
+const MEMORY_PLUGIN_OPTIONS = {
+  autoLoad: true,
+  autoSave: true,
+  autoSaveScope: 'project',
+  autoHookTimeoutMs: 100,
+  contextLimit: 5,
+  contextMaxChars: 1200
+};
+
+function pluginEntryMatches(entry, name) {
+  if (typeof entry === 'string') return entry.includes(name);
+  if (entry && typeof entry === 'object') {
+    return String(entry.package || entry.name || entry.plugin || '').includes(name);
+  }
+  return false;
+}
+
 function readJsonFile(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try {
@@ -110,7 +130,7 @@ function copyDirRecursive(src, dest) {
 
 if (!isUninstall) {
   // Step 0: Verify upstream dependencies (omo-slim must be installed first)
-  console.log('[0/5] Checking upstream dependencies (oh-my-opencode-slim)...');
+  console.log('[0/6] Checking upstream dependencies (oh-my-opencode-slim)...');
   const ocConfig = readJsonFile(OPENCODE_CONFIG_PATH);
   if (isPluginRegistered(ocConfig, 'oh-my-opencode-slim')) {
     console.log('  - OK: oh-my-opencode-slim is installed and registered as an OpenCode plugin.');
@@ -137,7 +157,7 @@ if (!isUninstall) {
   }
 
   // Step 1: Ensure Plugin Dependencies are installed
-  console.log('[1/5] Checking plugin dependencies (node_modules)...');
+  console.log('[1/6] Checking plugin dependencies (node_modules)...');
   const pluginNodeModules = path.join(PLUGIN_DIR, 'node_modules');
   if (!fs.existsSync(pluginNodeModules)) {
     console.log('  - Installing plugin dependencies in plugin/ ...');
@@ -167,7 +187,7 @@ if (!isUninstall) {
   }
 
   // Step 2: Check for collisions in global skills directory
-  console.log('[2/5] Checking for skill namespace collisions...');
+  console.log('[2/6] Checking for skill namespace collisions...');
   if (fs.existsSync(GLOBAL_SKILLS_DIR)) {
     const localSkills = fs.readdirSync(path.join(PROJECT_DIR, 'skills'));
     const existingSkills = fs.readdirSync(GLOBAL_SKILLS_DIR);
@@ -180,7 +200,7 @@ if (!isUninstall) {
   }
 
   // Step 3: Copy skills and agent prompts
-  console.log('[3/5] Deploying skills and agent definitions to OpenCode...');
+  console.log('[3/6] Deploying skills and agent definitions to OpenCode...');
   if (!isDryRun) {
     fs.mkdirSync(GLOBAL_SKILLS_DIR, { recursive: true });
     fs.mkdirSync(GLOBAL_AGENTS_DIR, { recursive: true });
@@ -209,7 +229,7 @@ if (!isUninstall) {
   console.log(`  - Deployed ${agentFiles.length} agent personas to ${GLOBAL_AGENTS_DIR}`);
 
   // Step 4: Update oh-my-opencode-slim.json additively
-  console.log('[4/5] Registering sylli and role-bound skills in oh-my-opencode-slim...');
+  console.log('[4/6] Registering sylli and role-bound skills in oh-my-opencode-slim...');
   const omoConfig = readJsonFile(OMO_CONFIG_PATH);
   if (omoConfig) {
     omoConfig.agents = omoConfig.agents || {};
@@ -236,7 +256,7 @@ if (!isUninstall) {
   }
 
   // Step 5: Register Sylli plugin in opencode.json
-  console.log('[5/5] Registering Sylli Security & Rule Plugin in opencode.json...');
+  console.log('[5/6] Registering Sylli Security & Rule Plugin in opencode.json...');
   const opencodeConfig = readJsonFile(OPENCODE_CONFIG_PATH);
   if (opencodeConfig) {
     const pluginList = ensurePluginList(opencodeConfig);
@@ -250,13 +270,28 @@ if (!isUninstall) {
     }
   }
 
+  // Step 6: Register the automatic project memory storage engine
+  console.log('[6/6] Registering project memory plugin (@knikolov/opencode-plugin-simple-memory)...');
+  const memoryConfig = readJsonFile(OPENCODE_CONFIG_PATH);
+  if (memoryConfig) {
+    const memoryList = ensurePluginList(memoryConfig);
+    if (memoryList.some(p => pluginEntryMatches(p, MEMORY_PLUGIN))) {
+      console.log('  - Memory plugin already registered in opencode.json');
+    } else {
+      memoryList.push({ package: MEMORY_PLUGIN, options: MEMORY_PLUGIN_OPTIONS });
+      writeJsonFile(OPENCODE_CONFIG_PATH, memoryConfig);
+      console.log(`  - Added memory plugin '${MEMORY_PLUGIN}' to opencode.json`);
+    }
+    console.log(`  - Automatic project memory ENABLED: typed records in .opencode/memory/ (autoLoad + autoSave, scope=project); Sylli hygiene compacts at 1 MB and age-purges context/blocker/learning after 90 days.`);
+  }
+
   console.log('\n====================================================');
   console.log('Installation Complete! You can now use @sylli in OpenCode.');
   console.log('====================================================');
 
 } else {
   // UNINSTALL ROUTINE
-  console.log('[1/3] Removing Sylli agent and role-bound skills from oh-my-opencode-slim...');
+  console.log('[1/4] Removing Sylli agent and role-bound skills from oh-my-opencode-slim...');
   const omoConfig = readJsonFile(OMO_CONFIG_PATH);
   if (omoConfig) {
     if (omoConfig.agents && omoConfig.agents.sylli) {
@@ -275,7 +310,7 @@ if (!isUninstall) {
     console.log('  - Cleaned oh-my-opencode-slim configuration');
   }
 
-  console.log('[2/3] Removing Sylli plugin from opencode.json...');
+  console.log('[2/4] Removing Sylli plugin from opencode.json...');
   const opencodeConfig = readJsonFile(OPENCODE_CONFIG_PATH);
   if (opencodeConfig) {
     const pluginEntry = path.join(PROJECT_DIR, 'plugin');
@@ -293,6 +328,25 @@ if (!isUninstall) {
     }
   }
 
-  console.log('[3/3] Sylli agent and bindings successfully removed.');
+  console.log('[3/4] Removing project memory plugin registration from opencode.json...');
+  const memoryUninstallConfig = readJsonFile(OPENCODE_CONFIG_PATH);
+  if (memoryUninstallConfig) {
+    let memoryRemoved = false;
+    for (const key of ['plugins', 'plugin']) {
+      if (Array.isArray(memoryUninstallConfig[key])) {
+        const filtered = memoryUninstallConfig[key].filter(p => !pluginEntryMatches(p, MEMORY_PLUGIN));
+        if (filtered.length !== memoryUninstallConfig[key].length) memoryRemoved = true;
+        memoryUninstallConfig[key] = filtered;
+      }
+    }
+    if (memoryRemoved) {
+      writeJsonFile(OPENCODE_CONFIG_PATH, memoryUninstallConfig);
+      console.log('  - Removed project memory plugin registration');
+    } else {
+      console.log('  - Project memory plugin was not registered');
+    }
+  }
+
+  console.log('[4/4] Sylli agent and bindings successfully removed.');
   console.log('====================================================');
 }

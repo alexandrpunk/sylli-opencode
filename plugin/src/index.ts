@@ -1,6 +1,25 @@
 import { Plugin } from "@opencode/plugin"
 import * as fs from "fs"
 import * as path from "path"
+import { runMemoryHygiene } from "./memory-hygiene"
+
+/**
+ * ── AUTOMATIC PROJECT MEMORY HYGIENE ────────────────────────────────
+ * Thresholds are read from environment variables:
+ *  - SYLLI_MEMORY_COMPACT_BYTES (default 1048576 / 1 MB)
+ *  - SYLLI_MEMORY_PURGE_DAYS (default 90 days, age-only purge for context/blocker/learning)
+ *  - SYLLI_MEMORY_HYGIENE_INTERVAL (default 200 tool executions)
+ * ─────────────────────────────────────────────────────────────────────
+ */
+
+function envInt(name: string, fallback: number): number {
+  const parsed = parseInt(process.env[name] || "", 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
+}
+
+const MEMORY_COMPACT_BYTES = envInt("SYLLI_MEMORY_COMPACT_BYTES", 1048576)
+const MEMORY_PURGE_DAYS = envInt("SYLLI_MEMORY_PURGE_DAYS", 90)
+const MEMORY_HYGIENE_INTERVAL = envInt("SYLLI_MEMORY_HYGIENE_INTERVAL", 200)
 
 // Prohibited absolute paths and sensitive file patterns per SECURITY.md
 const FORBIDDEN_PATH_PREFIXES = [
@@ -78,6 +97,21 @@ export default Plugin.define({
     const allowlistPath = path.join(directory, ".opencode", "sylli.allow")
 
     let allowlistCache: AllowlistState | null = null
+
+    // Memory hygiene: fire-and-forget at setup, then counter-triggered.
+    const memoryDir = path.join(directory, ".opencode", "memory")
+    let memoryToolExecutions = 0
+
+    function runHygienePass(): void {
+      if (isFullyDisabled()) return
+      void runMemoryHygiene({
+        dir: memoryDir,
+        compactBytes: MEMORY_COMPACT_BYTES,
+        purgeDays: MEMORY_PURGE_DAYS
+      }).catch(() => {
+        // Fail-open: hygiene must never block or surface errors
+      })
+    }
 
     function isFullyDisabled(): boolean {
       return process.env.SYLLI_DISABLE === "1" || process.env.SYLLI_DISABLE === "true"
@@ -307,6 +341,19 @@ export default Plugin.define({
       }
 
       validateToolInput(event.tool.toLowerCase(), event.input)
+    })
+
+    // 1b. Memory hygiene: fire one async pass now, then every N tool executions.
+    runHygienePass()
+    await ctx.tool.hook("execute.after", () => {
+      if (isFullyDisabled()) {
+        return
+      }
+      memoryToolExecutions++
+      if (MEMORY_HYGIENE_INTERVAL > 0 && memoryToolExecutions >= MEMORY_HYGIENE_INTERVAL) {
+        memoryToolExecutions = 0
+        runHygienePass()
+      }
     })
 
     // 2. Shell command security interceptor

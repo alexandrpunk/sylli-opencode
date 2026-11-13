@@ -80,3 +80,16 @@ If requirements change during implementation:
 2. Update the affected sections in `DESIGN.md`.
 3. Run a focused Goldfish pass on the delta.
 4. Request user confirmation to re-freeze (`status: frozen`) with an updated timestamp and hash.
+
+---
+
+## Project Memory
+
+Project memory is provided by `@knikolov/opencode-plugin-simple-memory` (typed records in `.opencode/memory/`). Use it so settled decisions and open blockers survive across sessions.
+
+- **At kickoff start**: call `memory_recall` / `memory_context` to load prior project context. Reconcile new requirements against recorded decisions instead of re-asking questions the project has already settled.
+- **On every DESIGN.md freeze/thaw**: call `memory_remember` with `type=decision, scope=project`, recording the new state and the frozen SHA-256 hash (`frozen` → hash, `thawed` → prior hash and reason).
+- **Unresolved Goldfish findings**: call `memory_remember` with `type=blocker, scope=project` for each Blocker or Major that is not yet resolved, so it is not lost between contexts. Clear or supersede the record once the finding is addressed.
+
+Memory hygiene (compaction and age-only purge of `context`/`blocker`/`learning`) runs automatically via the Sylli plugin; `decision`, `preference`, and `pattern` records are never auto-purged.
+
