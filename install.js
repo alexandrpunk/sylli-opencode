@@ -70,6 +70,26 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n', 'utf8');
 }
 
+// OpenCode V2 uses `plugins`; `plugin` is the V1 key that V2 still accepts.
+function getPluginList(config) {
+  if (!config) return null;
+  if (Array.isArray(config.plugins)) return config.plugins;
+  if (Array.isArray(config.plugin)) return config.plugin;
+  return null;
+}
+
+function ensurePluginList(config) {
+  if (Array.isArray(config.plugins)) return config.plugins;
+  if (Array.isArray(config.plugin)) return config.plugin;
+  config.plugins = [];
+  return config.plugins;
+}
+
+function isPluginRegistered(config, name) {
+  const list = getPluginList(config);
+  return Array.isArray(list) && list.some(p => String(p).includes(name));
+}
+
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(dest)) {
     if (!isDryRun) fs.mkdirSync(dest, { recursive: true });
@@ -92,14 +112,14 @@ if (!isUninstall) {
   // Step 0: Verify upstream dependencies (omo-slim must be installed first)
   console.log('[0/5] Checking upstream dependencies (oh-my-opencode-slim)...');
   const ocConfig = readJsonFile(OPENCODE_CONFIG_PATH);
-  if (ocConfig && Array.isArray(ocConfig.plugin) && ocConfig.plugin.some(p => String(p).includes('oh-my-opencode-slim'))) {
+  if (isPluginRegistered(ocConfig, 'oh-my-opencode-slim')) {
     console.log('  - OK: oh-my-opencode-slim is installed and registered as an OpenCode plugin.');
   } else {
     console.log('  - MISSING: oh-my-opencode-slim is not registered in opencode.json.');
     console.log('    Sylli depends on it (council agents, presets, skills_add grants).');
     if (!isDryRun) {
       try {
-        ocConfig.plugin.push('oh-my-opencode-slim');
+        ensurePluginList(ocConfig).push('oh-my-opencode-slim');
         writeJsonFile(OPENCODE_CONFIG_PATH, ocConfig);
         console.log('    -> Added "oh-my-opencode-slim" to the plugin list automatically.');
       } catch {
@@ -219,10 +239,10 @@ if (!isUninstall) {
   console.log('[5/5] Registering Sylli Security & Rule Plugin in opencode.json...');
   const opencodeConfig = readJsonFile(OPENCODE_CONFIG_PATH);
   if (opencodeConfig) {
-    opencodeConfig.plugin = opencodeConfig.plugin || [];
+    const pluginList = ensurePluginList(opencodeConfig);
     const pluginEntry = path.join(PROJECT_DIR, 'plugin');
-    if (!opencodeConfig.plugin.includes(pluginEntry)) {
-      opencodeConfig.plugin.push(pluginEntry);
+    if (!pluginList.includes(pluginEntry)) {
+      pluginList.push(pluginEntry);
       writeJsonFile(OPENCODE_CONFIG_PATH, opencodeConfig);
       console.log(`  - Added plugin '${pluginEntry}' to opencode.json`);
     } else {
@@ -257,11 +277,20 @@ if (!isUninstall) {
 
   console.log('[2/3] Removing Sylli plugin from opencode.json...');
   const opencodeConfig = readJsonFile(OPENCODE_CONFIG_PATH);
-  if (opencodeConfig && Array.isArray(opencodeConfig.plugin)) {
+  if (opencodeConfig) {
     const pluginEntry = path.join(PROJECT_DIR, 'plugin');
-    opencodeConfig.plugin = opencodeConfig.plugin.filter(p => p !== pluginEntry);
-    writeJsonFile(OPENCODE_CONFIG_PATH, opencodeConfig);
-    console.log('  - Cleaned opencode.json plugin entry');
+    let removed = false;
+    for (const key of ['plugins', 'plugin']) {
+      if (Array.isArray(opencodeConfig[key])) {
+        const filtered = opencodeConfig[key].filter(p => p !== pluginEntry);
+        if (filtered.length !== opencodeConfig[key].length) removed = true;
+        opencodeConfig[key] = filtered;
+      }
+    }
+    if (removed) {
+      writeJsonFile(OPENCODE_CONFIG_PATH, opencodeConfig);
+      console.log('  - Cleaned opencode.json plugin entry');
+    }
   }
 
   console.log('[3/3] Sylli agent and bindings successfully removed.');

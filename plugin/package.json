@@ -14,8 +14,8 @@
     "egm",
     "antislop"
   ],
-  "peerDependencies": {
-    "@opencode-ai/plugin": "*"
+  "dependencies": {
+    "@opencode/plugin": "^2.2.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.6"

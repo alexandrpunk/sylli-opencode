@@ -19,7 +19,7 @@ A custom council agent implementing the **Elephant-Goldfish Model (EGM)**. Befor
 5. **Thaws & re-reviews the delta** when requirements change mid-implementation.
 
 ### 🛡️ 2. Deterministic Security Plugin (`SECURITY.md` enforced in code)
-Prompt-based security rules can be ignored by a hallucinating model. Sylli's plugin intercepts tool calls **at runtime** (`tool.execute.before`):
+Prompt-based security rules can be ignored by a hallucinating model. Sylli's plugin intercepts tool calls **at runtime** (`ctx.tool.hook("execute.before")` / `ctx.shell.hook("create.before")`):
 
 - **Blocked paths**: `/etc`, `/usr`, `/bin`, `/boot`, `/root`, `.ssh`, `.gnupg`, and real `.env` secrets (templates like `.env.example` stay editable).
 - **Blocked commands**: `curl | sh`, `wget | bash`, `rm -rf /`, `mkfs`, `dd if=`, `chmod 777`.
@@ -63,7 +63,7 @@ git clone https://github.com/alexandrpunk/sylli-opencode.git ~/sylli && ~/sylli/
 
 This will:
 1. Verify `oh-my-opencode-slim` is installed (and register it if missing).
-2. Bundle plugin dependencies (`@opencode-ai/plugin`).
+2. Install plugin dependencies (`@opencode/plugin`, the OpenCode V2 plugin SDK).
 3. Deploy 36 skills to `~/.config/opencode/skills/`.
 4. Deploy 4 agent personas (`sylli` + 3 Goldfish) to `~/.config/opencode/agents/`.
 5. Register the `sylli` agent + role-bound skill grants in `oh-my-opencode-slim.json`.

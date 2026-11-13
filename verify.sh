@@ -62,11 +62,11 @@ else
 fi
 
 # 3. Check Plugin Dependencies
-echo -n "[3/7] Checking plugin dependencies (node_modules)... "
-if [[ -d "${PROJECT_DIR}/plugin/node_modules/@opencode-ai/plugin" ]]; then
-  echo "OK (@opencode-ai/plugin installed)"
+echo -n "[3/7] Checking plugin dependencies... "
+if grep -q '"@opencode/plugin"' "${PROJECT_DIR}/plugin/package.json"; then
+  echo "OK (@opencode/plugin declared; runtime provided by OpenCode)"
 else
-  echo "WARNING (run 'cd plugin && npm install' to bundle dependencies)"
+  echo "WARNING (plugin must declare @opencode/plugin)"
   WARNINGS=$((WARNINGS + 1))
 fi
 
