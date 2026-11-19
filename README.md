@@ -131,14 +131,31 @@ This will:
 
 Sylli stands on the shoulders of these projects — many thanks to their authors:
 
+### Platform & infrastructure
+
 | Project | What Sylli uses it for | License |
 | :--- | :--- | :--- |
 | [OpenCode](https://github.com/sst/opencode) · [opencode.ai](https://opencode.ai) | The agent platform and V2 plugin SDK (`@opencode/plugin`) Sylli extends | MIT |
 | [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) | The upstream agent suite Sylli builds its council, presets and skill grants on | MIT |
-| [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) · [docs](https://developer.chrome.com/docs/modern-web-guidance) | Official Chrome/Edge/Firefox/MDN web platform guidance consulted on demand by `designer` and `fixer` | Apache-2.0 |
-| [miqdadbadjuber/anti-slop](https://github.com/miqdadbadjuber/anti-slop) | The full anti-slop suite: UI, copywriting, a11y, layout-mobile and code-comment hygiene | MIT |
+| [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) · [docs](https://developer.chrome.com/docs/modern-web-guidance) | Official Chrome/Edge/Firefox/MDN web platform guidance consulted on demand by `designer` and `fixer` (via CLI bridge, nothing vendored) | Apache-2.0 |
 | [@knikolov/opencode-plugin-simple-memory](https://www.npmjs.com/package/@knikolov/opencode-plugin-simple-memory) | Automatic typed project memory (`.opencode/memory/`) with Sylli's hygiene on top | MIT |
 | [oxlint](https://github.com/oxc-project/oxlint) · [stylelint](https://github.com/stylelint/stylelint) · [html-validate](https://gitlab.com/html-validate/html-validate) | Optional instant anti-slop gates (`--with-linters`), also available via npx | MIT |
+
+### Vendored skills — by upstream origin
+
+| Origin | Skills | License |
+| :--- | :--- | :--- |
+| [miqdadbadjuber/anti-slop](https://github.com/miqdadbadjuber/anti-slop) | `antislop`, `antislop-code`, `antislop-copywriting`, `antislop-human`, `antislop-layoutmobile`, `antislop-ui` | MIT |
+| [addyosmani/web-quality-skills](https://github.com/addyosmani/web-quality-skills) (Ady Osmani) | `antislop-ui` & `antislop-human` reference material is adapted from it (license files vendored in-skill) | MIT |
+| [emilkowalski/skills](https://github.com/emilkowalski/skills) (Emil Kowalski) | `animate`, `animation-vocabulary`, `find-animation-opportunities`, `improve-animations`, `review-animations` | MIT |
+| [MengTo/Skills](https://github.com/MengTo/Skills) (Meng To, Design+Code) | `mengto-ui`, `mengto-web` | MIT |
+| [affaan-m/ECC](https://github.com/affaan-m/ECC) | `backend-patterns`, `database-migrations`, `deployment-patterns`, `design-system`, `error-handling`, `frontend-patterns`, `postgres-patterns`, `redis-patterns` | MIT |
+| [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent) | `writing-plans`, `systematic-debugging`, `test-driven-development` | MIT |
+| [anthropics/skills](https://github.com/anthropics/skills) (Anthropic) | `frontend-design` (LICENSE.txt vendored in-skill) | Apache-2.0 |
+| [ConardLi/garden-skills](https://github.com/ConardLi/garden-skills) (ConardLi) | `web-design-engineer` | MIT |
+| [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) | Oxlint rules wrapped by the `anti-slop-*` install skills | — |
+
+Remaining skills (`anti-slop-install`, `anti-slop-csharp/css/go/html/php/python/rust`, `thermos-quality`, `context-hygiene`, `modern-web-guidance` bridge) are Sylli-original.
 
 ## License
 
