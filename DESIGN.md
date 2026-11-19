@@ -139,7 +139,7 @@ The security plugin hooks into OpenCode's tool execution cycle:
 
 | Council Agent | Ported Domain Skills (`skills/`) | Anti-Slop Suite (`miqdadbadjuber/anti-slop`) | Stack Rules (`rules/`) |
 | :--- | :--- | :--- | :--- |
-| **`designer`** | `mengto-ui`, `mengto-web`, `design-system`, `animate`, `animation-vocabulary`, `find-animation-opportunities`, `improve-animations` | `antislop-ui`, `antislop-human`, `antislop-layoutmobile`, `antislop-copywriting` | `anti-slop-css`, `anti-slop-html` |
+| **`designer`** | `mengto-ui`, `mengto-web`, `design-system`, `animate`, `animation-vocabulary`, `find-animation-opportunities`, `improve-animations` | `antislop-ui`, `antislop-human`, `antislop-layoutmobile`, `antislop-copywriting` | `anti-slop-css`, `anti-slop-html`, `modern-web-guidance` |
 | **`fixer`** | `error-handling`, `backend-patterns`, `frontend-patterns`, `database-migrations`, `postgres-patterns`, `redis-patterns`, `deployment-patterns` | `antislop-code`, `antislop-human` | Dominant `rules/*.md` (e.g. `typescript.md`, `python.md`, `go.md`, `rust.md`) |
 | **`oracle`** | `systematic-debugging`, `review-animations`, `thermos-quality` | `antislop` (Core Delivery Gate), `antislop-code` | Stack gate review |
 | **`orchestrator`** | `writing-plans`, `test-driven-development` | `antislop-copywriting` | Context guidelines |

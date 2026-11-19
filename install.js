@@ -28,12 +28,13 @@ const ROLE_SKILLS_ADD = {
   designer: [
     'mengto-ui', 'mengto-web', 'design-system', 'animate', 'animation-vocabulary',
     'find-animation-opportunities', 'improve-animations', 'antislop-ui', 'antislop-human',
-    'antislop-layoutmobile', 'antislop-copywriting', 'anti-slop-css', 'anti-slop-html'
+    'antislop-layoutmobile', 'antislop-copywriting', 'anti-slop-css', 'anti-slop-html',
+    'modern-web-guidance'
   ],
   fixer: [
     'error-handling', 'backend-patterns', 'frontend-patterns', 'database-migrations',
     'postgres-patterns', 'redis-patterns', 'deployment-patterns', 'antislop-code',
-    'antislop-human', 'anti-slop-css', 'anti-slop-html'
+    'antislop-human', 'anti-slop-css', 'anti-slop-html', 'modern-web-guidance'
   ],
   oracle: [
     'systematic-debugging', 'review-animations', 'thermos-quality', 'antislop', 'antislop-code'
