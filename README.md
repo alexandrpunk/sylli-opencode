@@ -127,6 +127,19 @@ This will:
 - Node.js ≥ 20.12 (or Bun)
 - Works with any provider (omniroute, Z.AI, Bailian, etc.) — models configured per agent
 
+## Credits
+
+Sylli stands on the shoulders of these projects — many thanks to their authors:
+
+| Project | What Sylli uses it for | License |
+| :--- | :--- | :--- |
+| [OpenCode](https://github.com/sst/opencode) · [opencode.ai](https://opencode.ai) | The agent platform and V2 plugin SDK (`@opencode/plugin`) Sylli extends | MIT |
+| [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) | The upstream agent suite Sylli builds its council, presets and skill grants on | MIT |
+| [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) · [docs](https://developer.chrome.com/docs/modern-web-guidance) | Official Chrome/Edge/Firefox/MDN web platform guidance consulted on demand by `designer` and `fixer` | Apache-2.0 |
+| [miqdadbadjuber/anti-slop](https://github.com/miqdadbadjuber/anti-slop) | The full anti-slop suite: UI, copywriting, a11y, layout-mobile and code-comment hygiene | MIT |
+| [@knikolov/opencode-plugin-simple-memory](https://www.npmjs.com/package/@knikolov/opencode-plugin-simple-memory) | Automatic typed project memory (`.opencode/memory/`) with Sylli's hygiene on top | MIT |
+| [oxlint](https://github.com/oxc-project/oxlint) · [stylelint](https://github.com/stylelint/stylelint) · [html-validate](https://gitlab.com/html-validate/html-validate) | Optional instant anti-slop gates (`--with-linters`), also available via npx | MIT |
+
 ## License
 
 Apache-2.0 / MIT
