@@ -41,17 +41,19 @@ All restrictions are escap-hatches by design — every bypass is logged with a `
 2. **Session-wide** — launch OpenCode with `SYLLI_DISABLE=1` to disable every interceptor (path blocks, command blocks, and the EGM advisory; stack rules still inject).
 3. Blocked tool calls return an error message that names the exact allowlist line to add, so the agent (or you) can unblock a legitimate action in one step.
 
-### ✨ 3. Anti-Slop Skill Matrix (36 skills, role-bound)
+### ✨ 3. Anti-Slop Skill Matrix (37 skills, role-bound)
 Each council agent gets only the skills relevant to its job — no context pollution:
 
 | Agent | Gets |
 | :--- | :--- |
-| **`designer`** | MengTo UI, animation suite, `antislop-ui`, `antislop-human` (WCAG 2.2), `antislop-layoutmobile`, `antislop-copywriting`, `anti-slop-css`, `anti-slop-html` |
-| **`fixer`** | error-handling, backend/frontend patterns, database migrations (postgres/redis), deployment, `antislop-code`, stack rules |
+| **`designer`** | MengTo UI, animation suite, `antislop-ui`, `antislop-human` (WCAG 2.2), `antislop-layoutmobile`, `antislop-copywriting`, `anti-slop-css`, `anti-slop-html`, `modern-web-guidance` |
+| **`fixer`** | error-handling, backend/frontend patterns, database migrations (postgres/redis), deployment, `antislop-code`, stack rules, `modern-web-guidance` |
 | **`oracle`** | systematic-debugging, thermos-quality gate, `antislop` core Delivery Gate |
 | **`orchestrator`** | writing-plans, TDD, `antislop-copywriting`, context-hygiene |
 
 Includes the full [miqdadbadjuber/anti-slop](https://github.com/miqdadbadjuber/anti-slop) suite — killing cliché AI UI (purple gradients, glassmorphism abuse, fake terminals), empty copywriting ("Unlock the power of..."), accessibility failures (`<div onClick>`, removed focus outlines), and noisy code comments.
+
+Also ships a bridge to [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) (stewarded by the Chrome/Edge/Firefox/MDN teams): before `designer` or `fixer` hand-rolls a UI pattern, form behavior, a11y fix, or CSS/JS solution — or when modernizing legacy web code — they consult the official 262 feature guides / 204 use cases on demand via `npx modern-web-guidance@latest search/retrieve/legacy-scan`. Nothing is vendored, guidance is always current, and native platform solutions (Popover, Dialog, anchor positioning, scroll-driven animations…) are preferred over new dependencies.
 
 ### 🧠 4. Automatic Project Memory (0.3.0)
 Persistent project context is stored by [`@knikolov/opencode-plugin-simple-memory`](https://www.npmjs.com/package/@knikolov/opencode-plugin-simple-memory) (MIT) as typed records — `decision`, `learning`, `preference`, `blocker`, `context`, `pattern` — in git-trackable `.opencode/memory/YYYY-MM-DD.logfmt` files. `sylli` records every DESIGN.md freeze/thaw (`type=decision`, with the SHA-256 hash) and unresolved Goldfish findings (`type=blocker`), and recalls prior context at kickoff so settled questions are not re-asked. Injection is automatic: each session receives a budget-capped `Relevant Memory:` block (`contextLimit: 5`, `contextMaxChars: 1200`).
@@ -81,7 +83,7 @@ git clone https://github.com/alexandrpunk/sylli-opencode.git ~/sylli && ~/sylli/
 This will:
 1. Verify `oh-my-opencode-slim` is installed (and register it if missing).
 2. Install plugin dependencies (`@opencode/plugin`, the OpenCode V2 plugin SDK).
-3. Deploy 36 skills to `~/.config/opencode/skills/`.
+3. Deploy 37 skills to `~/.config/opencode/skills/`.
 4. Deploy 4 agent personas (`sylli` + 3 Goldfish) to `~/.config/opencode/agents/`.
 5. Register the `sylli` agent + role-bound skill grants in `oh-my-opencode-slim.json`.
 6. Register the security & rules plugin in `opencode.json`.
@@ -109,7 +111,7 @@ This will:
 ```
 ├── agents/                  # sylli (Elephant) + 3 Goldfish reviewer personas
 ├── plugin/                  # Security interceptor & stack-rule injector (TypeScript)
-├── skills/                  # 36 role-bound skills (anti-slop, MengTo, patterns)
+├── skills/                  # 37 role-bound skills (anti-slop, MengTo, patterns, modern-web-guidance)
 ├── rules/                   # Per-language self-checks (ts, py, go, rust, c#, php)
 ├── templates/DESIGN.template.md
 ├── templates/sylli.allow.template  # Bypass allowlist template
