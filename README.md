@@ -2,6 +2,38 @@
 
 > **Sylli** turns `oh-my-opencode-slim` (omo-slim) on OpenCode v2 into a design-first, security-guarded, slop-free coding council.
 
+## Quick Install (one command)
+
+```bash
+git clone https://github.com/alexandrpunk/sylli-opencode.git ~/sylli && ~/sylli/install.sh
+```
+
+This will:
+1. Verify `oh-my-opencode-slim` is installed (and register it if missing).
+2. Install plugin dependencies (`@opencode/plugin`, the OpenCode V2 plugin SDK).
+3. Deploy 37 skills to `~/.config/opencode/skills/`.
+4. Deploy 4 agent personas (`sylli` + 3 Goldfish) to `~/.config/opencode/agents/`.
+5. Register the `sylli` agent + role-bound skill grants in `oh-my-opencode-slim.json`.
+6. Register the security & rules plugin in `opencode.json`.
+7. Register the automatic project memory plugin in `opencode.json`.
+
+**Restart OpenCode** afterwards, then just summon the architect:
+
+```
+@sylli help me kick off a new project
+```
+
+### Options
+
+```bash
+~/sylli/install.sh --dry-run        # Preview everything, write nothing
+~/sylli/install.sh --with-linters   # Also install oxlint, stylelint, html-validate globally
+~/sylli/install.sh --uninstall      # Cleanly revert every change
+~/sylli/verify.sh                   # Healthcheck (files, deps, config, tools)
+~/sylli/update.sh --check            # Explicitly check release tags (no auto-update)
+~/sylli/update.sh --tag 0.4.0        # Inspect a known tag without checking it out
+```
+
 ---
 
 ## What Sylli Does
@@ -73,40 +105,6 @@ Thresholds are configurable via environment variables:
 SYLLI_MEMORY_COMPACT_BYTES=1048576   # compact threshold in bytes
 SYLLI_MEMORY_PURGE_DAYS=90           # purge age for context/blocker/learning
 SYLLI_MEMORY_HYGIENE_INTERVAL=200    # tool executions between hygiene passes
-```
-
----
-
-## Quick Install (one command)
-
-```bash
-git clone https://github.com/alexandrpunk/sylli-opencode.git ~/sylli && ~/sylli/install.sh
-```
-
-This will:
-1. Verify `oh-my-opencode-slim` is installed (and register it if missing).
-2. Install plugin dependencies (`@opencode/plugin`, the OpenCode V2 plugin SDK).
-3. Deploy 37 skills to `~/.config/opencode/skills/`.
-4. Deploy 4 agent personas (`sylli` + 3 Goldfish) to `~/.config/opencode/agents/`.
-5. Register the `sylli` agent + role-bound skill grants in `oh-my-opencode-slim.json`.
-6. Register the security & rules plugin in `opencode.json`.
-7. Register the automatic project memory plugin in `opencode.json`.
-
-**Restart OpenCode** afterwards, then just summon the architect:
-
-```
-@sylli help me kick off a new project
-```
-
-### Options
-
-```bash
-~/sylli/install.sh --dry-run        # Preview everything, write nothing
-~/sylli/install.sh --with-linters   # Also install oxlint, stylelint, html-validate globally
-~/sylli/install.sh --uninstall      # Cleanly revert every change
-~/sylli/verify.sh                   # Healthcheck (files, deps, config, tools)
-~/sylli/update.sh --check            # Explicitly check release tags (no auto-update)
-~/sylli/update.sh --tag 0.4.0        # Inspect a known tag without checking it out
 ```
 
 ### Releases and safe updates
