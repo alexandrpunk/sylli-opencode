@@ -111,6 +111,22 @@ SYLLI_MEMORY_HYGIENE_INTERVAL=200    # tool executions between hygiene passes
 
 The current plugin release is **0.4.0**. Releases are published on GitHub with a matching `v0.4.0` tag. Updates are manual and opt-in: Sylli never auto-updates, downloads, executes remote code, or sends telemetry.
 
+#### Actualización rápida
+
+Si instalaste Sylli en `~/sylli` y quieres actualizar a la última versión de `main`:
+
+```bash
+cd ~/sylli && git pull --ff-only origin main && ./install.sh && ./verify.sh
+```
+
+Este comando requiere que no tengas cambios locales sin guardar. Para una actualización controlada a una release concreta, usa el tag correspondiente, por ejemplo `v0.4.0`:
+
+```bash
+cd ~/sylli && git fetch origin --tags && git checkout --detach v0.4.0 && ./install.sh --dry-run && ./install.sh && ./verify.sh
+```
+
+Para revisar una actualización antes de aplicarla, ejecuta `./update.sh --check`. Después de instalar, reinicia OpenCode.
+
 To check for a release, run `./update.sh --check` intentionally. It fetches tags and displays newer remote commits, but changes no files. Use `--force` only when you understand and accept that the working tree is dirty. To inspect a specific local tag, use `./update.sh --tag 0.4.0`; it does not checkout or install anything. After reviewing and explicitly checking out a release, preview and apply it with:
 
 ```bash
