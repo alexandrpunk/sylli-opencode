@@ -9,6 +9,11 @@ const OPENCODE_CONFIG_PATH = path.join(CONFIG_DIR, 'opencode.json');
 const GLOBAL_SKILLS_DIR = path.join(CONFIG_DIR, 'skills');
 const GLOBAL_AGENTS_DIR = path.join(CONFIG_DIR, 'agents');
 const PLUGIN_DIR = path.join(PROJECT_DIR, 'plugin');
+const TASTE_SKILL_NAME = 'design-taste-frontend';
+const TASTE_SKILL_SOURCE = 'https://github.com/leonxlnx/taste-skill';
+const TASTE_SKILL_COMMIT = 'd1a2bb41d927083ac7118f60cfc9cdf711810ea0';
+const TASTE_SKILL_PATH = path.join(PROJECT_DIR, 'skills', 'taste-skill', 'SKILL.md');
+const TASTE_MANIFEST_PATH = path.join(PROJECT_DIR, 'vendor', 'UPSTREAM.json');
 
 const args = process.argv.slice(2);
 const isUninstall = args.includes('--uninstall');
@@ -29,7 +34,7 @@ const ROLE_SKILLS_ADD = {
     'mengto-ui', 'mengto-web', 'design-system', 'animate', 'animation-vocabulary',
     'find-animation-opportunities', 'improve-animations', 'antislop-ui', 'antislop-human',
     'antislop-layoutmobile', 'antislop-copywriting', 'anti-slop-css', 'anti-slop-html',
-    'modern-web-guidance'
+    'modern-web-guidance', 'design-taste-frontend'
   ],
   fixer: [
     'error-handling', 'backend-patterns', 'frontend-patterns', 'database-migrations',
@@ -37,7 +42,8 @@ const ROLE_SKILLS_ADD = {
     'antislop-human', 'anti-slop-css', 'anti-slop-html', 'modern-web-guidance'
   ],
   oracle: [
-    'systematic-debugging', 'review-animations', 'thermos-quality', 'antislop', 'antislop-code'
+    'systematic-debugging', 'review-animations', 'thermos-quality', 'antislop', 'antislop-code',
+    'design-taste-frontend'
   ],
   orchestrator: [
     'writing-plans', 'test-driven-development', 'antislop-copywriting', 'context-hygiene'
@@ -111,6 +117,29 @@ function isPluginRegistered(config, name) {
   return Array.isArray(list) && list.some(p => String(p).includes(name));
 }
 
+function validateTasteSkill() {
+  if (!fs.existsSync(TASTE_MANIFEST_PATH)) {
+    throw new Error(`Taste Skill manifest is missing: ${path.relative(PROJECT_DIR, TASTE_MANIFEST_PATH)}`);
+  }
+  let manifest;
+  try {
+    manifest = JSON.parse(fs.readFileSync(TASTE_MANIFEST_PATH, 'utf8'));
+  } catch (err) {
+    throw new Error(`Taste Skill manifest is invalid JSON: ${err.message}`);
+  }
+  if (manifest.commit !== TASTE_SKILL_COMMIT || manifest.skillName !== TASTE_SKILL_NAME) {
+    throw new Error(`Taste Skill manifest must declare commit ${TASTE_SKILL_COMMIT} and skillName ${TASTE_SKILL_NAME}`);
+  }
+  if (!fs.existsSync(TASTE_SKILL_PATH)) {
+    throw new Error(`Taste Skill is missing: ${path.relative(PROJECT_DIR, TASTE_SKILL_PATH)}`);
+  }
+  const frontmatter = fs.readFileSync(TASTE_SKILL_PATH, 'utf8').match(/^---\n([\s\S]*?)\n---/);
+  const name = frontmatter?.[1].match(/^name:\s*(\S+)/m)?.[1];
+  if (name !== TASTE_SKILL_NAME) {
+    throw new Error(`Taste Skill frontmatter name must be ${TASTE_SKILL_NAME}; found ${name || 'missing'}`);
+  }
+}
+
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(dest)) {
     if (!isDryRun) fs.mkdirSync(dest, { recursive: true });
@@ -130,6 +159,16 @@ function copyDirRecursive(src, dest) {
 // --- EXECUTION ---
 
 if (!isUninstall) {
+  console.log(`[Taste Skill] Source: ${TASTE_SKILL_SOURCE} @ ${TASTE_SKILL_COMMIT}`);
+  console.log('[Taste Skill] Runtime requirements: Node.js >=22 and Chrome/Edge/Chromium (optional; required by browser checks).');
+  try {
+    validateTasteSkill();
+    console.log(`  - OK: ${TASTE_SKILL_NAME} is vendored with the expected frontmatter.`);
+  } catch (err) {
+    console.error(`  - ERROR: ${err.message}`);
+    process.exit(1);
+  }
+
   // Step 0: Verify upstream dependencies (omo-slim must be installed first)
   console.log('[0/6] Checking upstream dependencies (oh-my-opencode-slim)...');
   const ocConfig = readJsonFile(OPENCODE_CONFIG_PATH);

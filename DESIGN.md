@@ -3,7 +3,8 @@
 * **Author:** alexandrpunk
 * **Agent Name:** `sylli`
 * **Status:** frozen
-* **Version:** 0.3.0
+* **Version:** 0.4.0
+* **Release:** 0.4.0 adds the pinned vendored Taste Skill, role-bound designer/oracle grants, manifest verification, and release/update documentation.
 * **Date:** 2026-11-13
 * **Frozen-Hash:** `a66f94be87af3c644868285dd9ffcea92c5d25ad9c549f44b28b4e3a7c968393`
 * **Frozen-Date:** 2026-11-13T08:24:29Z
@@ -45,6 +46,7 @@ Sylli solves all three: `sylli` governs design before construction, the security
 * **Dynamic Stack Rule Injection**: Automatically detects the project's dominant programming language and injects the corresponding self-checks from `rules/` (`typescript.md`, `python.md`, `go.md`, `rust.md`, `csharp.md`, `php.md`) directly into `fixer` and `council`.
 * **Integrated Anti-Slop Matrix**: Incorporates the full `miqdadbadjuber/anti-slop` suite alongside domain skills (MengTo UI, CSS Stylelint, HTML validator, animations, error handling, database patterns), mapped strictly by agent role.
 * **Idempotent Setup & Verification**: Single-command install and uninstall that merges configuration additively into `oh-my-opencode-slim.jsonc`, validates schema compatibility, and checks for skill namespace collisions.
+* **Pinned Taste Skill integration**: Vendor the complete Leonxlnx/taste-skill checkout at commit `d1a2bb41d927083ac7118f60cfc9cdf711810ea0`, expose its unchanged `design-taste-frontend` skill and relative assets/scripts, and grant it only to `designer` and `oracle`.
 
 ### Out-of-Scope Non-Goals
 
@@ -144,6 +146,8 @@ The security plugin hooks into OpenCode's tool execution cycle:
 | **`oracle`** | `systematic-debugging`, `review-animations`, `thermos-quality` | `antislop` (Core Delivery Gate), `antislop-code` | Stack gate review |
 | **`orchestrator`** | `writing-plans`, `test-driven-development` | `antislop-copywriting` | Context guidelines |
 | **`all agents`** | `context-hygiene` | — | — |
+
+`design-taste-frontend` is a complete vendored upstream checkout, pinned to Leonxlnx/taste-skill commit `d1a2bb41d927083ac7118f60cfc9cdf711810ea0`; it is assigned to `designer` and `oracle` only. Its scripts require Node.js 22+ and Chrome, Edge or Chromium (ffmpeg optional). The upstream Claude `Stop` hook remains preserved in the skill metadata, but OpenCode does not activate Claude hooks automatically; manual browser-gate validation is recommended.
 
 ### 4. Automatic Project Memory Layer (Delta 0.3.0)
 
