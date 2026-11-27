@@ -22,10 +22,10 @@ if [[ -f "${PROJECT_DIR}/plugin/package.json" && -f "${PROJECT_DIR}/plugin/packa
   LOCAL_VERSION=$(node -p "require('${PROJECT_DIR}/plugin/package.json').version")
   LOCK_VERSION=$(node -p "require('${PROJECT_DIR}/plugin/package-lock.json').version")
   ROOT_LOCK_VERSION=$(node -p "require('${PROJECT_DIR}/plugin/package-lock.json').packages[''].version")
-  if [[ "$LOCAL_VERSION" == "0.4.0" && "$LOCAL_VERSION" == "$LOCK_VERSION" && "$LOCAL_VERSION" == "$ROOT_LOCK_VERSION" ]]; then
+  if [[ "$LOCAL_VERSION" == "0.4.1" && "$LOCAL_VERSION" == "$LOCK_VERSION" && "$LOCAL_VERSION" == "$ROOT_LOCK_VERSION" ]]; then
     echo "OK (release $LOCAL_VERSION; package and lockfile agree)"
   else
-    echo "FAILED (package=$LOCAL_VERSION lockfile=$LOCK_VERSION root-lock=$ROOT_LOCK_VERSION; expected 0.4.0)"
+    echo "FAILED (package=$LOCAL_VERSION lockfile=$LOCK_VERSION root-lock=$ROOT_LOCK_VERSION; expected 0.4.1)"
     ERRORS=$((ERRORS + 1))
   fi
 else
@@ -141,7 +141,7 @@ done
 if [[ ${#LINTERS_FOUND[@]} -gt 0 ]]; then
   echo "OK (Available locally: ${LINTERS_FOUND[*]})"
 else
-  echo "NOTE (Linters available via npx/bunx on demand; run ./install.sh --with-linters for instant global access)"
+  echo "NOTE (Linters available via npx/bunx on demand; run ./install.sh to install globally, or --without-linters to skip)"
 fi
 
 # 7. Check oh-my-opencode-slim configuration

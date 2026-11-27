@@ -18,7 +18,13 @@ const TASTE_MANIFEST_PATH = path.join(PROJECT_DIR, 'vendor', 'UPSTREAM.json');
 const args = process.argv.slice(2);
 const isUninstall = args.includes('--uninstall');
 const isDryRun = args.includes('--dry-run');
-const withLinters = args.includes('--with-linters');
+const withoutLinters = args.includes('--without-linters');
+const withLintersAlias = args.includes('--with-linters');
+const installLinters = !withoutLinters;
+
+if (withLintersAlias && withoutLinters) {
+  console.warn('Both --with-linters and --without-linters were provided; omitting linter installation.');
+}
 
 console.log('====================================================');
 console.log(isUninstall ? '         Sylli Uninstallation Routine              ' : '         Sylli Installation Routine                ');
@@ -212,8 +218,8 @@ if (!isUninstall) {
     console.log('  - Plugin dependencies are already installed.');
   }
 
-  // Optional: Install global linters for instant anti-slop gate execution
-  if (withLinters) {
+  // Install global linters by default; --without-linters opts out.
+  if (installLinters) {
     console.log('[+] Installing anti-slop linter tools (oxlint, stylelint, html-validate)...');
     if (!isDryRun) {
       try {

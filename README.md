@@ -27,8 +27,10 @@ This will:
 
 ```bash
 ~/sylli/install.sh --dry-run        # Preview everything, write nothing
-~/sylli/install.sh --with-linters   # Also install oxlint, stylelint, html-validate globally
-~/sylli/install.sh --uninstall      # Cleanly revert every change
+~/sylli/install.sh                  # Install oxlint, stylelint, html-validate globally by default
+~/sylli/install.sh --without-linters # Skip global linter installation
+~/sylli/install.sh --with-linters    # Compatibility alias (the default)
+~/sylli/install.sh --uninstall       # Cleanly revert every change
 ~/sylli/verify.sh                   # Healthcheck (files, deps, config, tools)
 ~/sylli/update.sh --check            # Explicitly check release tags (no auto-update)
 ~/sylli/update.sh --tag 0.4.0        # Inspect a known tag without checking it out
@@ -109,7 +111,7 @@ SYLLI_MEMORY_HYGIENE_INTERVAL=200    # tool executions between hygiene passes
 
 ### Releases and safe updates
 
-The current plugin release is **0.4.0**. Releases are published on GitHub with a matching `v0.4.0` tag. Updates are manual and opt-in: Sylli never auto-updates, downloads, executes remote code, or sends telemetry.
+The current plugin release is **0.4.1**. Releases are published on GitHub with a matching `v0.4.1` tag. Updates are manual and opt-in: Sylli never auto-updates, downloads, executes remote code, or sends telemetry.
 
 #### Actualización rápida
 
@@ -119,15 +121,15 @@ Si instalaste Sylli en `~/sylli` y quieres actualizar a la última versión de `
 cd ~/sylli && git pull --ff-only origin main && ./install.sh && ./verify.sh
 ```
 
-Este comando requiere que no tengas cambios locales sin guardar. Para una actualización controlada a una release concreta, usa el tag correspondiente, por ejemplo `v0.4.0`:
+Este comando requiere que no tengas cambios locales sin guardar. Para una actualización controlada a una release concreta, usa el tag correspondiente, por ejemplo `v0.4.1`:
 
 ```bash
-cd ~/sylli && git fetch origin --tags && git checkout --detach v0.4.0 && ./install.sh --dry-run && ./install.sh && ./verify.sh
+cd ~/sylli && git fetch origin --tags && git checkout --detach v0.4.1 && ./install.sh --dry-run && ./install.sh && ./verify.sh
 ```
 
 Para revisar una actualización antes de aplicarla, ejecuta `./update.sh --check`. Después de instalar, reinicia OpenCode.
 
-To check for a release, run `./update.sh --check` intentionally. It fetches tags and displays newer remote commits, but changes no files. Use `--force` only when you understand and accept that the working tree is dirty. To inspect a specific local tag, use `./update.sh --tag 0.4.0`; it does not checkout or install anything. After reviewing and explicitly checking out a release, preview and apply it with:
+To check for a release, run `./update.sh --check` intentionally. It fetches tags and displays newer remote commits, but changes no files. Use `--force` only when you understand and accept that the working tree is dirty. To inspect a specific local tag, use `./update.sh --tag 0.4.1`; it does not checkout or install anything. After reviewing and explicitly checking out a release, preview and apply it with:
 
 ```bash
 ./install.sh --dry-run
@@ -173,7 +175,7 @@ Sylli stands on the shoulders of these projects — many thanks to their authors
 | [oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim) | The upstream agent suite Sylli builds its council, presets and skill grants on | MIT |
 | [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) · [docs](https://developer.chrome.com/docs/modern-web-guidance) | Official Chrome/Edge/Firefox/MDN web platform guidance consulted on demand by `designer` and `fixer` (via CLI bridge, nothing vendored) | Apache-2.0 |
 | [@knikolov/opencode-plugin-simple-memory](https://www.npmjs.com/package/@knikolov/opencode-plugin-simple-memory) | Automatic typed project memory (`.opencode/memory/`) with Sylli's hygiene on top | MIT |
-| [oxlint](https://github.com/oxc-project/oxlint) · [stylelint](https://github.com/stylelint/stylelint) · [html-validate](https://gitlab.com/html-validate/html-validate) | Optional instant anti-slop gates (`--with-linters`), also available via npx | MIT |
+| [oxlint](https://github.com/oxc-project/oxlint) · [stylelint](https://github.com/stylelint/stylelint) · [html-validate](https://gitlab.com/html-validate/html-validate) | Global anti-slop gates installed by default; skip with `--without-linters` (also available via npx) | MIT |
 
 ### Vendored skills — by upstream origin
 
